@@ -1,0 +1,19 @@
+version: "3.7"
+services:
+  todo-backend:
+    image: todo-backend
+    build:
+      context: ./
+      dockerfile: ../build/package/Dockerfile
+    ports:
+      - 8902:8080
+  timescaledb:
+    image: "postgres:12"
+    ports:
+      - 54321:5432
+    environment:
+      - POSTGRES_DB=sepet
+      - POSTGRES_USER=sepet
+      - POSTGRES_PASSWORD=sepet
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql

@@ -1,10 +1,10 @@
-FROM golang:1.13-alpine as builder
+FROM golang:1.13 as builder
 WORKDIR ..
 RUN mkdir todo-backend
 WORKDIR /todo-backend
-COPY ../.. ./
-RUN go build -o todo-backend ./cmd/main.go
+COPY . ./
+RUN CGO_ENABLED=0 GOOS=linux go build -o todo-backend ./cmd/todo-backend/main.go
 
 FROM scratch
-COPY --from=builder /todo-backend/todo-backend .
-CMD ["./todo-backend"]
+COPY --from=builder /todo-backend/todo-backend /
+CMD ["/todo-backend"]

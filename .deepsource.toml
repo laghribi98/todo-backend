@@ -1,0 +1,18 @@
+version = 1
+
+[[analyzers]]
+name = "docker"
+enabled = true
+
+  [analyzers.meta]
+  dockerfile_paths = [
+    "build/package/Dockerfile"
+  ]
+
+[[analyzers]]
+name = "go"
+enabled = true
+
+  [analyzers.meta]
+  import_path = "github.com/ormanli/todo-backend"
+  dependencies_vendored = false

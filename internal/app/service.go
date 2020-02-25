@@ -3,16 +3,17 @@ package app
 import (
 	"context"
 	"errors"
+	"fmt"
 )
 
 // Service is a simple CRUD interface for user profiles.
 type Service interface {
 	GetTodos(ctx context.Context) ([]Todo, error)
 	GetTodo(ctx context.Context, id int) (Todo, error)
-	PostTodo(ctx context.Context, t Todo) error
+	InsertTodo(ctx context.Context, t Todo) (Todo, error)
 	DeleteTodos(ctx context.Context) error
 	DeleteTodo(ctx context.Context, id int) error
-	PatchTodo(ctx context.Context, id int, t Todo) error
+	UpdateTodo(ctx context.Context, id int, t Todo) (Todo, error)
 }
 
 var (
@@ -21,34 +22,92 @@ var (
 	ErrNotFound        = errors.New("not found")
 )
 
-type inmemService struct {
+type serviceImpl struct {
 	repository Repository
+	cfg        *Config
 }
 
-func NewInmemService() Service {
-	return &inmemService{}
+type Todo struct {
+	Id        *int    `json:"id"`
+	Title     *string `json:"title"`
+	Completed *bool   `json:"completed"`
+	Order     *int    `json:"order"`
+	URL       string  `json:"url"`
 }
 
-func (s *inmemService) PostTodo(ctx context.Context, t Todo) error {
-	return s.repository.Save(ctx, t)
+func NewService(repository Repository, cfg *Config) Service {
+	return &serviceImpl{repository: repository, cfg: cfg}
 }
 
-func (s *inmemService) GetTodo(ctx context.Context, id int) (Todo, error) {
-	return s.repository.Get(ctx, id)
+var blank = Todo{}
+
+func (s *serviceImpl) InsertTodo(ctx context.Context, t Todo) (Todo, error) {
+	if t.Completed == nil {
+		var b bool
+		t.Completed = &b
+	}
+
+	if t.Order == nil {
+		var i int
+		t.Order = &i
+	}
+
+	if t.Title == nil {
+		var s string
+		t.Title = &s
+	}
+
+	todo, err := s.repository.Save(t)
+	if err != nil {
+		return blank, err
+	}
+
+	return s.addURL(todo), nil
 }
 
-func (s *inmemService) PatchTodo(ctx context.Context, id int, t Todo) error {
-	return s.repository.Update(ctx, id, t)
+func (s *serviceImpl) GetTodo(_ context.Context, id int) (Todo, error) {
+	todo, err := s.repository.Get(id)
+	if err != nil {
+		return blank, err
+	}
+
+	return s.addURL(todo), nil
 }
 
-func (s *inmemService) DeleteTodo(ctx context.Context, id int) error {
-	return s.repository.Delete(ctx, id)
+func (s *serviceImpl) UpdateTodo(ctx context.Context, id int, t Todo) (Todo, error) {
+	todo, err := s.repository.Update(id, t)
+	if err != nil {
+		return blank, err
+	}
+
+	return s.addURL(todo), nil
 }
 
-func (s *inmemService) GetTodos(ctx context.Context) ([]Todo, error) {
-	return s.repository.GetAll(ctx)
+func (s *serviceImpl) DeleteTodo(_ context.Context, id int) error {
+	return s.repository.Delete(id)
 }
 
-func (s *inmemService) DeleteTodos(ctx context.Context) error {
-	return s.repository.DeleteAll(ctx)
+func (s *serviceImpl) GetTodos(_ context.Context) ([]Todo, error) {
+	todos, err := s.repository.GetAll()
+	if err != nil {
+		return nil, err
+	}
+
+	for i := range todos {
+		todos[i] = s.addURL(todos[i])
+	}
+
+	return todos, err
+}
+
+func (s *serviceImpl) DeleteTodos(_ context.Context) error {
+	return s.repository.DeleteAll()
+}
+
+func (s *serviceImpl) addURL(todo Todo) Todo {
+	id := *todo.Id
+
+	todo.URL = fmt.Sprintf("%s/%d", s.cfg.Url, id)
+
+	return todo
 }

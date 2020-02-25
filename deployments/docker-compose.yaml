@@ -3,17 +3,30 @@ services:
   todo-backend:
     image: todo-backend
     build:
-      context: ./
-      dockerfile: ../build/package/Dockerfile
+      context: ../
+      dockerfile: ./build/package/Dockerfile
     ports:
       - 8902:8080
-  timescaledb:
+    environment:
+      - TODO_DATABASEHOST=todo-backend-db
+      - TODO_DATABASEPORT=5432
+      - TODO_DATABASEUSERNAME=todo
+      - TODO_DATABASEPASSWORD=todo
+      - TODO_DATABASESCHEMA=todo
+      - TODO_URL=http://todo-backend:8080
+    depends_on:
+      - todo-backend-db
+  todo-backend-db:
     image: "postgres:12"
     ports:
       - 54321:5432
     environment:
-      - POSTGRES_DB=sepet
-      - POSTGRES_USER=sepet
-      - POSTGRES_PASSWORD=sepet
-    volumes:
-      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+      - POSTGRES_DB=todo
+      - POSTGRES_USER=todo
+      - POSTGRES_PASSWORD=todo
+  todo-backend-specs:
+    image: "nicolasmartin58/todobackend-specs"
+    environment:
+      - URL=todo-backend:8080/todos
+    depends_on:
+      - todo-backend

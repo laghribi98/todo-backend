@@ -87,7 +87,7 @@ func decodeGetTodoRequest(_ context.Context, r *http.Request) (request interface
 	}
 
 	idAsInt, err := strconv.Atoi(id)
-	if !ok {
+	if err != nil {
 		return nil, ErrNoInt
 	}
 
@@ -107,7 +107,7 @@ func decodePatchTodoRequest(_ context.Context, r *http.Request) (request interfa
 	}
 
 	idAsInt, err := strconv.Atoi(id)
-	if !ok {
+	if err != nil {
 		return nil, ErrNoInt
 	}
 
@@ -129,7 +129,7 @@ func decodeDeleteTodoRequest(_ context.Context, r *http.Request) (request interf
 	}
 
 	idAsInt, err := strconv.Atoi(id)
-	if !ok {
+	if err != nil {
 		return nil, ErrNoInt
 	}
 

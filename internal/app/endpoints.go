@@ -7,6 +7,7 @@ import (
 )
 
 type Endpoints struct {
+	AliveEndpoint       endpoint.Endpoint
 	GetTodosEndpoint    endpoint.Endpoint
 	GetTodoEndpoint     endpoint.Endpoint
 	PostTodoEndpoint    endpoint.Endpoint
@@ -17,12 +18,19 @@ type Endpoints struct {
 
 func MakeServerEndpoints(s Service) Endpoints {
 	return Endpoints{
+		AliveEndpoint:       MakeAliveEndpoint(s),
 		PostTodoEndpoint:    MakePostTodoEndpoint(s),
 		GetTodoEndpoint:     MakeGetTodoEndpoint(s),
 		GetTodosEndpoint:    MakeGetTodosEndpoint(s),
 		PatchTodoEndpoint:   MakePatchTodoEndpoint(s),
 		DeleteTodoEndpoint:  MakeDeleteTodoEndpoint(s),
 		DeleteTodosEndpoint: MakeDeleteTodosEndpoint(s),
+	}
+}
+
+func MakeAliveEndpoint(_ Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		return map[string]string{"status": "OK"}, nil
 	}
 }
 

@@ -24,9 +24,3 @@ services:
       - POSTGRES_DB=todo
       - POSTGRES_USER=todo
       - POSTGRES_PASSWORD=todo
-  todo-backend-specs:
-    image: "nicolasmartin58/todobackend-specs"
-    environment:
-      - URL=todo-backend:8080/todos
-    depends_on:
-      - todo-backend

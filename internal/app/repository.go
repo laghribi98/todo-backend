@@ -14,6 +14,7 @@ type Repository interface {
 	DeleteAll() error
 	Delete(id int) error
 	Update(id int, t Todo) (Todo, error)
+	Drop() error
 }
 
 type postgresRepository struct {
@@ -38,7 +39,7 @@ func NewPostgresRepository(c *Config) (*postgresRepository, error) {
 func (p *postgresRepository) GetAll() ([]Todo, error) {
 	var t []todo
 
-	err := p.db.Order("order asc").Find(&t).Error
+	err := p.db.Order(`"order" asc`).Find(&t).Error
 	if err != nil {
 		return nil, err
 	}
@@ -122,6 +123,15 @@ func (p *postgresRepository) Update(id int, t Todo) (Todo, error) {
 	}
 
 	return toDTO(m), nil
+}
+
+func (p *postgresRepository) Drop() error {
+	err := p.db.Unscoped().Delete(&todo{}).Error
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 type todo struct {

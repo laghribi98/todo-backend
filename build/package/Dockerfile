@@ -7,4 +7,4 @@ RUN CGO_ENABLED=0 GOOS=linux go build -o todo-backend ./cmd/todo-backend/main.go
 
 FROM scratch
 COPY --from=builder /todo-backend/todo-backend /
-CMD ["/todo-backend"]
+ENTRYPOINT ["/todo-backend"]

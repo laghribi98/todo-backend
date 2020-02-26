@@ -1,6 +1,7 @@
 # todo-backend
 
-This is an example implementation for [Todo-Backend](https://www.todobackend.com) with [Go kit](https://github.com/go-kit/kit) and PostgreSQL.
+This is an example implementation for [Todo-Backend](https://www.todobackend.com) with [Go kit](https://github.com/go-kit/kit), [GORM](https://gorm.io/) and PostgreSQL.
+An instance is available at [Heroku](https://todo-backend-gokit-postgresql.herokuapp.com/todos).
 
 Requirements
 ====

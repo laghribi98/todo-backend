@@ -3,7 +3,7 @@ package app
 import "github.com/kelseyhightower/envconfig"
 
 type Config struct {
-	ServerPort       string `default:":8080"`
+	ServerPort       string `envconfig:"port" default:"8080"`
 	DatabaseHost     string `default:"localhost"`
 	DatabasePort     string `default:"54321"`
 	DatabaseUsername string `default:"todo"`

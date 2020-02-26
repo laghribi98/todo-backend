@@ -14,6 +14,7 @@ type Service interface {
 	DeleteTodos(ctx context.Context) error
 	DeleteTodo(ctx context.Context, id int) error
 	UpdateTodo(ctx context.Context, id int, t Todo) (Todo, error)
+	Clear() error
 }
 
 var (
@@ -93,6 +94,10 @@ func (s *serviceImpl) GetTodos(_ context.Context) ([]Todo, error) {
 		return nil, err
 	}
 
+	if len(todos) == 0 {
+		todos = []Todo{}
+	}
+
 	for i := range todos {
 		todos[i] = s.addURL(todos[i])
 	}
@@ -110,4 +115,8 @@ func (s *serviceImpl) addURL(todo Todo) Todo {
 	todo.URL = fmt.Sprintf("%s/%d", s.cfg.Url, id)
 
 	return todo
+}
+
+func (s *serviceImpl) Clear() error {
+	return s.repository.Drop()
 }

@@ -23,9 +23,16 @@ type loggingMiddleware struct {
 	logger log.Logger
 }
 
+func (mw loggingMiddleware) Clear() (err error) {
+	defer func(begin time.Time) {
+		mw.logger.Log("method", "Clear", "took", time.Since(begin), "err", err)
+	}(time.Now())
+	return mw.next.Clear()
+}
+
 func (mw loggingMiddleware) InsertTodo(ctx context.Context, t Todo) (t2 Todo, err error) {
 	defer func(begin time.Time) {
-		mw.logger.Log("method", "PostTodo", "took", time.Since(begin), "err", err)
+		mw.logger.Log("method", "InsertTodo", "took", time.Since(begin), "err", err)
 	}(time.Now())
 	return mw.next.InsertTodo(ctx, t)
 }
@@ -39,7 +46,7 @@ func (mw loggingMiddleware) GetTodo(ctx context.Context, id int) (t Todo, err er
 
 func (mw loggingMiddleware) UpdateTodo(ctx context.Context, id int, t Todo) (t2 Todo, err error) {
 	defer func(begin time.Time) {
-		mw.logger.Log("method", "PatchTodo", "id", id, "took", time.Since(begin), "err", err)
+		mw.logger.Log("method", "UpdateTodo", "id", id, "took", time.Since(begin), "err", err)
 	}(time.Now())
 	return mw.next.UpdateTodo(ctx, id, t)
 }

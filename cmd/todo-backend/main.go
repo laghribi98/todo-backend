@@ -8,11 +8,12 @@ import (
 	"syscall"
 
 	"github.com/go-kit/kit/log"
+	"github.com/jasonlvhit/gocron"
 	"github.com/ormanli/todo-backend/internal/app"
 )
 
 func main() {
-	logger := log.NewLogfmtLogger(os.Stderr)
+	logger := log.NewLogfmtLogger(os.Stdout)
 	logger = log.With(logger, "ts", log.DefaultTimestampUTC)
 	logger = log.With(logger, "caller", log.DefaultCaller)
 
@@ -29,6 +30,7 @@ func main() {
 
 	s := app.NewService(r, config)
 	s = app.LoggingMiddleware(logger)(s)
+	initializeCron(s)
 
 	h := app.MakeHTTPHandler(s, log.With(logger, "component", "HTTP"))
 
@@ -41,8 +43,13 @@ func main() {
 
 	go func() {
 		logger.Log("transport", "HTTP", "addr", config.ServerPort)
-		errs <- http.ListenAndServe(config.ServerPort, h)
+		errs <- http.ListenAndServe(fmt.Sprintf(":%s", config.ServerPort), h)
 	}()
 
 	logger.Log("exit", <-errs)
+}
+
+func initializeCron(s app.Service) {
+	gocron.Every(1).Day().DoSafely(s.Clear)
+	gocron.Start()
 }

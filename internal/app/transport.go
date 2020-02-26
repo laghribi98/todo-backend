@@ -26,6 +26,12 @@ func MakeHTTPHandler(s Service, logger log.Logger) http.Handler {
 		httptransport.ServerErrorEncoder(encodeError),
 	}
 
+	r.Methods("GET").Path("/").Handler(httptransport.NewServer(
+		e.AliveEndpoint,
+		decodeEmptyRequest,
+		encodeResponse(http.StatusOK),
+		options...,
+	))
 	r.Methods("GET").Path("/todos").Handler(httptransport.NewServer(
 		e.GetTodosEndpoint,
 		decodeEmptyRequest,
@@ -46,7 +52,7 @@ func MakeHTTPHandler(s Service, logger log.Logger) http.Handler {
 	))
 	r.Methods("DELETE").Path("/todos").Handler(httptransport.NewServer(
 		e.DeleteTodosEndpoint,
-		decodeDeleteTodosRequest,
+		decodeEmptyRequest,
 		encodeResponse(http.StatusOK),
 		options...,
 	))
@@ -115,10 +121,6 @@ func decodePatchTodoRequest(_ context.Context, r *http.Request) (request interfa
 		ID:   idAsInt,
 		Todo: t,
 	}, nil
-}
-
-func decodeDeleteTodosRequest(_ context.Context, r *http.Request) (request interface{}, err error) {
-	return nil, nil
 }
 
 func decodeDeleteTodoRequest(_ context.Context, r *http.Request) (request interface{}, err error) {

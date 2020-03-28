@@ -50,6 +50,6 @@ func main() {
 }
 
 func initializeCron(s app.Service) {
-	gocron.Every(1).Day().DoSafely(s.Clear)
+	gocron.Every(20).Minutes().DoSafely(s.Clear)
 	gocron.Start()
 }

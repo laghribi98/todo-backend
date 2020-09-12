@@ -29,7 +29,7 @@ type serviceImpl struct {
 }
 
 type Todo struct {
-	Id        *int    `json:"id"`
+	ID        *int    `json:"id"`
 	Title     *string `json:"title"`
 	Completed *bool   `json:"completed"`
 	Order     *int    `json:"order"`
@@ -58,7 +58,7 @@ func (s *serviceImpl) InsertTodo(ctx context.Context, t Todo) (Todo, error) {
 		t.Title = &s
 	}
 
-	todo, err := s.repository.Save(t)
+	todo, err := s.repository.Save(ctx, t)
 	if err != nil {
 		return blank, err
 	}
@@ -66,8 +66,8 @@ func (s *serviceImpl) InsertTodo(ctx context.Context, t Todo) (Todo, error) {
 	return s.addURL(todo), nil
 }
 
-func (s *serviceImpl) GetTodo(_ context.Context, id int) (Todo, error) {
-	todo, err := s.repository.Get(id)
+func (s *serviceImpl) GetTodo(ctx context.Context, id int) (Todo, error) {
+	todo, err := s.repository.Get(ctx, id)
 	if err != nil {
 		return blank, err
 	}
@@ -76,7 +76,7 @@ func (s *serviceImpl) GetTodo(_ context.Context, id int) (Todo, error) {
 }
 
 func (s *serviceImpl) UpdateTodo(ctx context.Context, id int, t Todo) (Todo, error) {
-	todo, err := s.repository.Update(id, t)
+	todo, err := s.repository.Update(ctx, id, t)
 	if err != nil {
 		return blank, err
 	}
@@ -84,12 +84,12 @@ func (s *serviceImpl) UpdateTodo(ctx context.Context, id int, t Todo) (Todo, err
 	return s.addURL(todo), nil
 }
 
-func (s *serviceImpl) DeleteTodo(_ context.Context, id int) error {
-	return s.repository.Delete(id)
+func (s *serviceImpl) DeleteTodo(ctx context.Context, id int) error {
+	return s.repository.Delete(ctx, id)
 }
 
-func (s *serviceImpl) GetTodos(_ context.Context) ([]Todo, error) {
-	todos, err := s.repository.GetAll()
+func (s *serviceImpl) GetTodos(ctx context.Context) ([]Todo, error) {
+	todos, err := s.repository.GetAll(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -105,14 +105,14 @@ func (s *serviceImpl) GetTodos(_ context.Context) ([]Todo, error) {
 	return todos, err
 }
 
-func (s *serviceImpl) DeleteTodos(_ context.Context) error {
-	return s.repository.DeleteAll()
+func (s *serviceImpl) DeleteTodos(ctx context.Context) error {
+	return s.repository.DeleteAll(ctx)
 }
 
 func (s *serviceImpl) addURL(todo Todo) Todo {
-	id := *todo.Id
+	id := *todo.ID
 
-	todo.URL = fmt.Sprintf("%s/%d", s.cfg.Url, id)
+	todo.URL = fmt.Sprintf("%s/%d", s.cfg.URL, id)
 
 	return todo
 }

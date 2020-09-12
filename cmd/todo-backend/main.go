@@ -6,9 +6,10 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
+	"github.com/go-co-op/gocron"
 	"github.com/go-kit/kit/log"
-	"github.com/jasonlvhit/gocron"
 	"github.com/ormanli/todo-backend/internal/app"
 )
 
@@ -50,6 +51,7 @@ func main() {
 }
 
 func initializeCron(s app.Service) {
-	gocron.Every(20).Minutes().Do(s.Clear)
-	gocron.Start()
+	cron := gocron.NewScheduler(time.UTC)
+	cron.Every(20).Minutes().Do(s.Clear)
+	cron.StartAsync()
 }

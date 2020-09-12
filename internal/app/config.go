@@ -9,7 +9,7 @@ type Config struct {
 	DatabaseUsername string `default:"todo"`
 	DatabasePassword string `default:"todo"`
 	DatabaseSchema   string `default:"todo"`
-	Url              string `default:"http://localhost:8080"`
+	URL              string `default:"http://localhost:8080"`
 }
 
 func CreateConfig() (*Config, error) {

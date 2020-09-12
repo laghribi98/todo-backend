@@ -1,19 +1,20 @@
 package app
 
 import (
+	"context"
 	"fmt"
 
-	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/postgres"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
 
 type Repository interface {
-	GetAll() ([]Todo, error)
-	Get(id int) (Todo, error)
-	Save(t Todo) (Todo, error)
-	DeleteAll() error
-	Delete(id int) error
-	Update(id int, t Todo) (Todo, error)
+	GetAll(context.Context) ([]Todo, error)
+	Get(ctx context.Context, id int) (Todo, error)
+	Save(ctx context.Context, t Todo) (Todo, error)
+	DeleteAll(context.Context) error
+	Delete(ctx context.Context, id int) error
+	Update(ctx context.Context, id int, t Todo) (Todo, error)
 	Drop() error
 }
 
@@ -24,7 +25,7 @@ type postgresRepository struct {
 func NewPostgresRepository(c *Config) (*postgresRepository, error) {
 	connectionString := fmt.Sprintf("host=%s port=%s user=%s dbname=%s password=%s sslmode=disable", c.DatabaseHost, c.DatabasePort, c.DatabaseUsername, c.DatabaseSchema, c.DatabasePassword)
 
-	db, err := gorm.Open("postgres", connectionString)
+	db, err := gorm.Open(postgres.Open(connectionString), &gorm.Config{})
 	if err != nil {
 		return nil, err
 	}
@@ -36,26 +37,26 @@ func NewPostgresRepository(c *Config) (*postgresRepository, error) {
 	return p, nil
 }
 
-func (p *postgresRepository) GetAll() ([]Todo, error) {
+func (p *postgresRepository) GetAll(ctx context.Context) ([]Todo, error) {
 	var t []todo
 
-	err := p.db.Order(`"order" asc`).Find(&t).Error
+	err := p.db.WithContext(ctx).Order(`"order" asc`).Find(&t).Error
 	if err != nil {
 		return nil, err
 	}
 
-	var r []Todo
-	for _, v := range t {
-		r = append(r, toDTO(v))
+	r := make([]Todo, len(t))
+	for i, v := range t {
+		r[i] = toDTO(v)
 	}
 
 	return r, nil
 }
 
-func (p *postgresRepository) Get(id int) (Todo, error) {
+func (p *postgresRepository) Get(ctx context.Context, id int) (Todo, error) {
 	var t todo
 
-	err := p.db.First(&t, id).Error
+	err := p.db.WithContext(ctx).First(&t, id).Error
 	if err != nil {
 		return blank, err
 	}
@@ -63,10 +64,10 @@ func (p *postgresRepository) Get(id int) (Todo, error) {
 	return toDTO(t), nil
 }
 
-func (p *postgresRepository) Save(t Todo) (Todo, error) {
+func (p *postgresRepository) Save(ctx context.Context, t Todo) (Todo, error) {
 	m := toModel(t)
 
-	err := p.db.Create(&m).Error
+	err := p.db.WithContext(ctx).Create(&m).Error
 	if err != nil {
 		return blank, err
 	}
@@ -74,8 +75,8 @@ func (p *postgresRepository) Save(t Todo) (Todo, error) {
 	return toDTO(m), nil
 }
 
-func (p *postgresRepository) DeleteAll() error {
-	err := p.db.Delete(&todo{}).Error
+func (p *postgresRepository) DeleteAll(ctx context.Context) error {
+	err := p.db.WithContext(ctx).Delete(&todo{}).Error
 	if err != nil {
 		return err
 	}
@@ -83,10 +84,8 @@ func (p *postgresRepository) DeleteAll() error {
 	return nil
 }
 
-func (p *postgresRepository) Delete(id int) error {
-	err := p.db.Delete(&todo{
-		Model: gorm.Model{ID: uint(id)},
-	}).Error
+func (p *postgresRepository) Delete(ctx context.Context, id int) error {
+	err := p.db.WithContext(ctx).Delete(&todo{}, id).Error
 	if err != nil {
 		return err
 	}
@@ -94,10 +93,10 @@ func (p *postgresRepository) Delete(id int) error {
 	return nil
 }
 
-func (p *postgresRepository) Update(id int, t Todo) (Todo, error) {
+func (p *postgresRepository) Update(ctx context.Context, id int, t Todo) (Todo, error) {
 	var m todo
 
-	err := p.db.First(&m, id).Error
+	err := p.db.WithContext(ctx).First(&m, id).Error
 	if err != nil {
 		return blank, err
 	}
@@ -117,7 +116,7 @@ func (p *postgresRepository) Update(id int, t Todo) (Todo, error) {
 		t.Title = &s
 	}
 
-	err = p.db.Model(&m).Updates(toModel(t)).Error
+	err = p.db.WithContext(ctx).Model(&m).Updates(toModel(t)).Error
 	if err != nil {
 		return blank, err
 	}
@@ -152,7 +151,7 @@ func toModel(t Todo) todo {
 func toDTO(t todo) Todo {
 	id := int(t.ID)
 	return Todo{
-		Id:        &id,
+		ID:        &id,
 		Title:     &t.Title,
 		Completed: &t.Completed,
 		Order:     &t.Order,
